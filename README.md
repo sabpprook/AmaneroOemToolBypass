@@ -6,9 +6,9 @@ If trying update firmware will show the message below.
 
 > ### Invalid or not authorized transaction!
 
-The modified firmware tool is allowed firmware flashing.
-* **[oemtool117u_bypass.zip](https://github.com/sabpprook/AmaneroOemToolBypass/blob/main/oemtool117u_bypass.zip)**
-*(SHA256: 4c52112631b9aa303d1afbaa23c729c6ef2ccc37dcf982f386aab1ba3ef34cb3)*
+The loader will patch **ConfigTool.exe** to make firmware flashing allowed.
+* **[AmaneroOemToolBypass.exe](https://github.com/sabpprook/AmaneroOemToolBypass/releases/latest/download/AmaneroOemToolBypass.exe)**
+*(SHA256: d8474114e0dfba252da9edc7acda4697c73d18d4752abbf9f5143545b29d9207)*
 
 ***
 
