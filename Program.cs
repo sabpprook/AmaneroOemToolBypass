@@ -1,7 +1,9 @@
-﻿using ProcessMemoryScanner;
+﻿using ProcessMemoryUtilities.Managed;
+using ProcessMemoryUtilities.Native;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace AmaneroOemToolBypass
 {
@@ -15,47 +17,53 @@ namespace AmaneroOemToolBypass
              * patch: EB 19 8B 85 78 FF FF FF BA
              */
 
-            var targetFile = "ConfigTool.exe";
+            var targetExe = "ConfigTool.exe";
             var targetBytes = new byte[] { 0x74, 0x19, 0x8B, 0x85, 0x78, 0xFF, 0xFF, 0xFF, 0xBA };
+            var patchBytes = new byte[] { 0xEB };
 
-            if (!File.Exists(targetFile))
+            if (!File.Exists(targetExe))
             {
-                Console.WriteLine($"{targetFile} not found!");
+                Console.WriteLine($"{targetExe} not found!");
                 Console.ReadKey();
-                Environment.Exit(0);
+                return;
             }
 
-            var oemtool = Process.Start(targetFile);
+            var oemtool = Process.Start(targetExe);
+            var baseAddress = oemtool.MainModule.BaseAddress;
+            var matchAddress = IntPtr.Zero;
 
-            var memory = new MemoryScanner(p => p.Id == oemtool.Id);
-            var memoryRegions = memory.FindMemoryRegion(p => p.RegionSize.ToInt64() > 0);
+            var buffer = new byte[2 * 1024 * 1024];
 
-            memory.SuspendProcess();
+            var handle = NativeWrapper.OpenProcess(ProcessAccessFlags.Read, oemtool.Id);
+            NativeWrapper.ReadProcessMemoryArray(handle, baseAddress, buffer);
+            NativeWrapper.CloseHandle(handle);
 
-            var offset = IntPtr.Zero;
-            foreach (var region in memoryRegions)
+            for (int i = 0; i < buffer.Length - targetBytes.Length; i++)
             {
-                if (region.RegionSize.ToInt64() > 0x10000000)
-                    continue;
-
-                offset = memory.FindByAoB(targetBytes, region);
-                if (offset != IntPtr.Zero)
+                var result = buffer.Take(i..(i + targetBytes.Length)).SequenceEqual(targetBytes);
+                if (result)
                 {
-                    memory.WriteMemory(offset, new byte[] { 0xEB });
-                    memory.ResumeProcess();
-                    Console.WriteLine("Patch done!");
-                    break; //only one section need patch
+                    matchAddress = baseAddress + i;
+                    break;
                 }
             }
 
-            if (offset == IntPtr.Zero)
+            if (matchAddress == IntPtr.Zero)
             {
                 oemtool.Kill();
-                Console.WriteLine("AOB scan no result!");
+                Console.WriteLine("nothing to do...");
+                Console.ReadKey();
+                return;
             }
 
+            handle = NativeWrapper.OpenProcess(ProcessAccessFlags.ReadWrite, oemtool.Id);
+            NativeWrapper.VirtualProtectEx(handle, matchAddress, (IntPtr)patchBytes.Length, MemoryProtectionFlags.ExecuteReadWrite, out var oldProtect);
+            NativeWrapper.WriteProcessMemoryArray(handle, matchAddress, patchBytes);
+            NativeWrapper.VirtualProtectEx(handle, matchAddress, (IntPtr)patchBytes.Length, oldProtect, out _);
+            NativeWrapper.CloseHandle(handle);
+
+            Console.WriteLine("patch done!");
             Console.ReadKey();
-            Environment.Exit(0);
         }
     }
 }

@@ -1,6 +1,9 @@
 # AmaneroOemToolBypass
 
-Amanero official firmware tool can't be use on third party Combo384 USB card.
+Amanero official firmware tool can't be use on cloned Combo384 USB card.
+
+![board-front](https://github.com/sabpprook/AmaneroOemToolBypass/blob/main/pics/board-front.png)
+![board-back](https://github.com/sabpprook/AmaneroOemToolBypass/blob/main/pics/board-back.png)
 
 If trying update firmware will show the message below.
 
@@ -8,9 +11,10 @@ If trying update firmware will show the message below.
 
 ![sshot-0001](https://github.com/sabpprook/AmaneroOemToolBypass/blob/main/pics/sshot-0001.png)
 
-The loader will patch **ConfigTool.exe** to make firmware flashing allowed.
+The loader will patch **ConfigTool.exe** to make firmware flashing is allowed.
 * **[AmaneroOemToolBypass.exe](https://github.com/sabpprook/AmaneroOemToolBypass/releases/latest/download/AmaneroOemToolBypass.exe)**
-*(SHA256: d8474114e0dfba252da9edc7acda4697c73d18d4752abbf9f5143545b29d9207)*
+
+Please install .NET 6.0 Desktop Runtime ([x86](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)) first.
 
 ***
 
@@ -23,5 +27,8 @@ The loader will patch **ConfigTool.exe** to make firmware flashing allowed.
 * **ES9028PRO** **ES9038PRO**
     + CPLD_for_1080 + firmware_1099c
     + CPLD_1080_DSDSWAPPED + firmware_1099c
+
+* **2022 New Firmware**
+    + CPLD_for_1091 + firmware_2006be15r2_nodop
 
 ![sshot-0002](https://github.com/sabpprook/AmaneroOemToolBypass/blob/main/pics/sshot-0002.png)
