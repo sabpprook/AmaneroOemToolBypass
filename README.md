@@ -2,8 +2,8 @@
 
 Amanero official firmware tool can't be use on cloned Combo384 USB card.
 
-![board-front](https://github.com/sabpprook/AmaneroOemToolBypass/blob/main/pics/board-front.png)
-![board-back](https://github.com/sabpprook/AmaneroOemToolBypass/blob/main/pics/board-back.png)
+![board-front](https://github.com/sabpprook/AmaneroOemToolBypass/blob/main/pics/board-front.jpg)
+![board-back](https://github.com/sabpprook/AmaneroOemToolBypass/blob/main/pics/board-back.jpg)
 
 If trying update firmware will show the message below.
 
