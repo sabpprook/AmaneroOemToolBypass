@@ -6,25 +6,29 @@
 
 <img src="assets/board-back.jpg" alt="board-back" width="100%" />
 
-#### The official Amanero Combo384 firmware tool is incompatible with cloned Combo384 boards.
-#### Attempting to flash the firmware will display the following message.
+The official Amanero Combo384 firmware tool is incompatible with cloned Combo384 boards.
 
-> #### _Invalid or not authorized transaction!_
+Attempting to flash the firmware will display the following message.
 
-#### Your IP address will be blacklisted by the Amanero server.
+> _Invalid or not authorized transaction!_
+
+Then your IP address will be blacklisted by the Amanero server.
 
 ![sshot-0001](assets/sshot-0001.png)
 
 ## ConfigTool Bypass
 
-#### After reverse engineering the authorization for **ATMEL Chip ID** and **firmware request**.
-#### I've deployed an API on Cloudflare Workers to emulate these requests, The cloned Combo384 card is now completely unlocked!  
+After reverse engineering the authorization for **ATMEL Chip ID** and **firmware request**.
+
+I've deployed an API on [Cloudflare Workers](https://combo384.twmdzz.com/) to emulate these requests, The cloned Combo384 card is now completely unlocked!  
 
 ![loader](assets/loader.png)
 
 ![sshot-0002](assets/sshot-0002.png)
 
-### Install [.NET Desktop Runtime 10.0.3 x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-10.0.3-windows-x86-installer) first, then move to [Release](https://github.com/sabpprook/AmaneroOemToolBypass/releases) page to download loader
+Official tool: [oemtool118u.zip](assets/oemtool118u.zip)
+
+Install [.NET Desktop Runtime 10 x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-10.0.3-windows-x86-installer) first, then move to Release page to download loader
 
 ## Best Practice for Combo384
 
