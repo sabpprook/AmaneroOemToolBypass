@@ -26,9 +26,9 @@ I've deployed an API on [Cloudflare Workers](https://combo384.twmdzz.com/) to em
 
 ![sshot-0002](assets/sshot-0002.png)
 
-Official tool: [oemtool118u.zip](assets/oemtool118u.zip)
+Download: [ConfigToolLoader.exe](https://github.com/sabpprook/AmaneroOemToolBypass/releases/latest/download/ConfigToolLoader.exe)
 
-Install [.NET Desktop Runtime 10 x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-10.0.3-windows-x86-installer) first, then move to Release page to download loader
+Official tool: [oemtool118u.zip](assets/oemtool118u.zip)
 
 ## Best Practice for Combo384
 
