@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -8,90 +9,106 @@ namespace ConfigToolLoader
     {
         static void Main(string[] args)
         {
-            var Tool = new ConfigTool();
-            if (!Tool.IsValid)
-            {
-                Console.ReadKey();
-                return;
-            }
+            ConfigTool tool = new();
 
-            // [section] .stabstr
-            // [+] readable
-            Tool.PatchUint32(0x000002B4, 0x42000000);
+            if (tool.IsValid)
+                tool.Patch();
 
-            // URL 1
-            Tool.PatchString(0x01235B40, "https://combo384.twmdzz.com/targa102/auto.php?");
-            Tool.PatchUint32(0x00026BAC, 0x01642344);
-            Tool.PatchUint32(0x0002AA1F, 0x01642344);
-
-            // URL 2
-            Tool.PatchString(0x01235B80, "https://combo384.twmdzz.com/targa102/");
-            Tool.PatchUint32(0x0002702B, 0x01642384);
-            Tool.PatchUint32(0x00027660, 0x01642384);
-            Tool.PatchUint32(0x00029810, 0x01642384);
-            Tool.PatchUint32(0x0002B924, 0x01642384);
-
-            Tool.Execute();
+            Console.ReadKey();
         }
     }
 
     public class ConfigTool
     {
-        private readonly string EXE = "ConfigTool.exe";
-        private readonly string Hash = "75eb32ba75833bd0c4555911ce5c2cd51d4e3301f1e033f630abb6bd1e6a90f7";
-        private static byte[] Buffer;
-        public bool IsValid { get; set; }
+        private readonly string fileName = "ConfigTool.exe";
+
+        private readonly string fileHash = "75eb32ba75833bd0c4555911ce5c2cd51d4e3301f1e033f630abb6bd1e6a90f7";
+
+        private Process process;
+
+        public bool IsValid => process != null && !process.HasExited;
 
         public ConfigTool()
         {
-            if (!File.Exists(EXE))
+            if (!File.Exists(fileName))
             {
-                Console.WriteLine($"{EXE} not found!");
+                Console.WriteLine($"{fileName} not found!");
                 return;
             }
 
-            Buffer = File.ReadAllBytes(EXE);
-
-            using (var sha256 = SHA256.Create())
+            using (var fs = File.OpenRead(fileName))
+            using (var sha = SHA256.Create())
             {
-                var hash = sha256.ComputeHash(Buffer);
+                var hash = sha.ComputeHash(fs);
                 var str = BitConverter.ToString(hash).Replace("-", "").ToLower();
-                if (str != Hash)
+                if (str != fileHash)
                 {
-                    Console.WriteLine($"{EXE} checksum mismatch!");
+                    Console.WriteLine($"{fileHash} checksum mismatch!");
                     return;
                 }
             }
 
+            process = new()
+            {
+                StartInfo = new(fileName)
+                {
+                    UseShellExecute = false
+                }
+            };
+            process.Start();
+        }
+
+        public void Patch()
+        {
             Console.WriteLine("========================================");
             Console.WriteLine("       Combo384 ConfigTool Loader       ");
-            Console.WriteLine("========================================");
-            Console.WriteLine();
-            IsValid = true;
+            Console.WriteLine("========================================\n");
+
+            var addr = AllocMemory(0x1000);
+            var main = process.MainModule.BaseAddress;
+
+            WriteString(addr + 0x00, "https://combo384.twmdzz.com/targa102/auto.php?");
+            WriteString(addr + 0x80, "https://combo384.twmdzz.com/targa102/");
+
+            WriteInt32(main + 0x000277AB + 1, (int)addr + 0x04);
+            WriteInt32(main + 0x0002B61E + 1, (int)addr + 0x04);
+
+            WriteInt32(main + 0x00027C2A + 1, (int)addr + 0x84);
+            WriteInt32(main + 0x0002825F + 1, (int)addr + 0x84);
+            WriteInt32(main + 0x0002A40F + 1, (int)addr + 0x84);
+            WriteInt32(main + 0x0002C523 + 1, (int)addr + 0x84);
         }
 
-        public void PatchUint32(UInt32 offset, UInt32 content)
+        private nint AllocMemory(uint size)
         {
-            BitConverter.GetBytes(content).CopyTo(Buffer, offset);
-            Console.WriteLine($"[+] 0x{offset.ToString("X8")} => 0x{content.ToString("X8")}");
+            return VirtualAllocEx(process.Handle, IntPtr.Zero, size, MEM_COMMIT, PAGE_READWRITE);
         }
 
-        public void PatchString(UInt32 offset, string content)
+        private void WriteInt32(nint address, int content)
         {
-            BitConverter.GetBytes(content.Length).CopyTo(Buffer, offset);
-            Encoding.UTF8.GetBytes(content).CopyTo(Buffer, offset + 4);
-            Console.WriteLine($"[+] 0x{offset.ToString("X8")} => 0x{content.Length.ToString("X8")}");
-            Console.WriteLine($"[+] 0x{(offset + 4).ToString("X8")} => \"{content}\"");
+            var buff = BitConverter.GetBytes(content);
+            WriteProcessMemory(process.Handle, address, buff, (uint)buff.Length, out uint _);
+            Console.WriteLine($"[+] 0x{address.ToString("X8")} => 0x{content.ToString("X8")}");
         }
 
-        public void Execute()
+        private void WriteString(nint address, string content)
         {
-            var temp = "temp.exe";
-            File.WriteAllBytes(temp, Buffer);
-            var p = Process.Start(temp);
-            p.WaitForExit();
-            Thread.Sleep(500);
-            File.Delete(temp);
+            WriteInt32(address, content.Length);
+
+            address += 4;
+            var buff = Encoding.UTF8.GetBytes(content);
+            WriteProcessMemory(process.Handle, address, buff, (uint)buff.Length, out uint _);
+            Console.WriteLine($"[+] 0x{address.ToString("X8")} => \"{content}\"");
         }
+
+        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+        private static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out uint lpNumberOfBytesWritten);
+
+        private const uint MEM_COMMIT = 0x00001000;
+
+        private const uint PAGE_READWRITE = 0x4;
     }
 }
